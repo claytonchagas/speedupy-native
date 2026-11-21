@@ -22,10 +22,12 @@ The same as `dew-uff/speedupy`'s `AGENTS.md`, in short:
 
 ## What never changes without a decision
 
-- **The vendored commits** under `vendor/`. They are the sources the
-  measurements of the SpeeduPy papers used. Moving a submodule changes hash
-  values; it is a maintainers' decision, at least a minor version, written in
-  the release notes with before and after values of one input.
+- **The vendored sources** under `vendor/`: upstream files copied unchanged,
+  at the versions the measurements of the SpeeduPy papers used (`NOTICE`
+  names each repository, version and commit). They are never edited. A new
+  upstream version is a new copy plus a `NOTICE` update; it changes hash
+  values, so it is a maintainers' decision, at least a minor version, written
+  in the release notes with before and after values of one input.
 - **`tests/test_vectors.py`.** Generated, never edited by hand. It changes only
   with the previous item, by running `tools/gen_vectors.py` against the
   original `.so` libraries built from the new commit.
@@ -44,13 +46,15 @@ The same as `dew-uff/speedupy`'s `AGENTS.md`, in short:
 
 ## Traps
 
-- **Submodules.** `git clone` without `--recurse-submodules` leaves `vendor/`
-  empty and `build.rs` fails at the first `#include`. Run
-  `git submodule update --init`.
-- **MuseAir is a cdylib.** The fork's `Cargo.toml` only produces a shared
-  library, which Cargo cannot link. `crates/museair/Cargo.toml` is a bridge
-  manifest whose `[lib] path` points into the submodule; it is the dependency
-  the extension uses. Do not copy the source.
+- **Vendored files are not ours.** A fix that seems needed in `vendor/` goes
+  upstream, or into the wrappers in `csrc/` and the glue in `src/`; the copies
+  stay byte for byte what `NOTICE` says they are (`diff` against the upstream
+  commit proves it).
+- **MuseAir has no manifest of its own here.** `crates/museair/Cargo.toml` is
+  a bridge manifest whose `[lib] path` points at the vendored `src/lib.rs`
+  (upstream v0.4, which forbids unsafe code; the extension calls
+  `bfast::hash` directly and needs no C export). The upstream manifest is kept
+  as `vendor/museair/Cargo.toml.upstream` for its license and feature list.
 - **MeowHash is x86_64 only.** `build.rs` compiles its wrapper only there and
   sets `cfg(has_meowhash)`; `HAS_MEOWHASH` also checks AES-NI at run time. A
   test that needs MeowHash skips where `HAS_MEOWHASH` is false, never fails.

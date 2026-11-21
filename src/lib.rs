@@ -7,7 +7,7 @@
 //! - `a5hash_128_64(data, seed=0)`: lower 64 bits of a5hash-128 (SMHasher's
 //!   a5hash-128.64), through `a5hash_wrapper.c`;
 //! - `museair_bfast_64(data, seed=0)`: MuseAir BFast 64-bit, the same call
-//!   the fork's `museair_bfast_64` wrapper makes;
+//!   the original `.so` wrapper made (`bfast::hash(data, seed)`);
 //! - `meowhash_32(data)`: lower 32 bits of MeowHash 0.5 with the default seed,
 //!   through `meow_wrapper.cpp` (x86_64 with AES-NI only).
 

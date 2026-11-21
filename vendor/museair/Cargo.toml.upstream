@@ -1,0 +1,45 @@
+[package]
+name = "museair"
+version = "0.4.0"
+edition = "2021"
+rust-version = "1.83.0"
+authors = ["K--Aethiax"]
+
+description = "A portable hashing algorithm that heavily optimized for performance and quality, incorporating structures never before implemented."
+
+documentation = "https://docs.rs/museair"
+repository = "https://github.com/eternal-io/museair"
+license = "MIT OR Apache-2.0"
+readme = "CRATES.IO-README.md"
+
+keywords = ["hash", "hasher", "museair", "wyhash", "rapidhash"]
+categories = ["algorithms", "no-std"]
+
+include = ["src/**"]
+
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+
+[features]
+default = ["std"]
+std = []
+
+
+[dev-dependencies]
+hashverify = "0.1.0"
+criterion = "0.5.1"
+komihash = "0.4.1"
+wyhash-final4 = "0.2.2"
+rapidhash = "1.4.0"
+
+
+[workspace]
+members = ["show-asm"]
+
+
+[[bench]]
+name = "hashes"
+harness = false

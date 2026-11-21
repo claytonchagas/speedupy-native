@@ -1,7 +1,8 @@
-//! Compiles the two C/C++ wrappers of the vendored sources.
+//! Compiles the two C/C++ wrappers (`csrc/`) over the vendored sources
+//! (`vendor/`).
 //!
-//! - `vendor/a5hash/a5hash_wrapper.c` on every target.
-//! - `vendor/meow_hash/meow_wrapper.cpp` only on x86_64: MeowHash 0.5 exists
+//! - `csrc/a5hash_wrapper.c` on every target.
+//! - `csrc/meow_wrapper.cpp` only on x86_64: MeowHash 0.5 exists
 //!   for x86_64 with AES-NI only. On any other target the extension is built
 //!   without it and `speedupy_native.HAS_MEOWHASH` is false.
 
@@ -11,16 +12,16 @@ fn main() {
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
 
     for path in [
-        "vendor/a5hash/a5hash_wrapper.c",
+        "csrc/a5hash_wrapper.c",
+        "csrc/meow_wrapper.cpp",
         "vendor/a5hash/a5hash.h",
-        "vendor/meow_hash/meow_wrapper.cpp",
         "vendor/meow_hash/meow_hash_x64_aesni.h",
     ] {
         println!("cargo:rerun-if-changed={path}");
     }
 
     cc::Build::new()
-        .file("vendor/a5hash/a5hash_wrapper.c")
+        .file("csrc/a5hash_wrapper.c")
         .include("vendor/a5hash")
         .opt_level(3)
         .warnings(false)
@@ -29,7 +30,7 @@ fn main() {
     if target_arch == "x86_64" {
         let mut meow = cc::Build::new();
         meow.cpp(true)
-            .file("vendor/meow_hash/meow_wrapper.cpp")
+            .file("csrc/meow_wrapper.cpp")
             .include("vendor/meow_hash")
             .opt_level(3)
             .warnings(false);

@@ -1,22 +1,40 @@
-speedupy-native bundles three third-party hash implementations, vendored as git
-submodules under vendor/ at pinned commits. Their licenses apply to their code
-and are reproduced in the files named below; the glue code of this package is
-MIT (see LICENSE).
+speedupy-native bundles three third-party hash implementations, copied
+unchanged into vendor/ from the upstream repositories at the commits below:
+the versions SpeeduPy's measurements used. Their licenses apply to their code
+and are reproduced in the files named below; the glue code of this package
+(src/, csrc/, build.rs, python/) is MIT (see LICENSE).
 
-a5hash (vendor/a5hash)
-  Copyright (c) Aleksey Vaneev
+The copies are never edited. A new version is a new copy of the upstream
+files, with this file updated, the reference values regenerated
+(tools/gen_vectors.py) and at least a minor version bump, since the hash
+values change.
+
+a5hash (vendor/a5hash/a5hash.h)
+  Copyright (c) 2025 Aleksey Vaneev
   License: MIT, vendor/a5hash/LICENSE
-  Source: https://github.com/JoaoLopez/a5hash, commit 7ff7fa34c406279f3f3203fb01d39c8b8cf263b1
-  (fork of https://github.com/avaneev/a5hash adding a5hash_wrapper.c)
+  Upstream: https://github.com/avaneev/a5hash
+  Version: 5.25, tag 5.25, commit 0c37b0b722e20cda2b06cecbe94d748962b99eab (2025-12-12)
 
-MeowHash 0.5 (vendor/meow_hash)
+MeowHash (vendor/meow_hash/meow_hash_x64_aesni.h)
   (C) Copyright 2018 Molly Rocket, Inc.
   License: zlib, vendor/meow_hash/LICENSE
-  Source: https://github.com/JoaoLopez/meow_hash, commit beeb71f01c2a3a85d5956589c0b14a825d28fdc9
-  (fork of https://github.com/cmuratori/meow_hash adding meow_wrapper.cpp)
+  Upstream: https://github.com/cmuratori/meow_hash
+  Version: 0.5 "calico", commit b080caa7e51576fe3151c8976110df7966fa6a38 (2021-07-02, the
+  repository's last commit). The author reclassified 0.5 after a published
+  cryptanalysis: not for message authentication or hash tables exposed to
+  collision attacks.
 
-MuseAir (vendor/museair)
+MuseAir (vendor/museair/src/lib.rs, vendor/museair/CRATES.IO-README.md,
+vendor/museair/Cargo.toml.upstream)
   Copyright (c) K--Aethiax
-  License: MIT OR Apache-2.0, as declared in vendor/museair/Cargo.toml
-  Source: https://github.com/JoaoLopez/museair, branch oficial, commit 91e7304675d35139e4be9054e793a5504393b2bd
-  (fork of https://github.com/eternal-io/museair adding the museair_bfast_64 C export)
+  License: MIT OR Apache-2.0, as declared in vendor/museair/Cargo.toml.upstream
+  Upstream: https://github.com/eternal-io/museair
+  Version: 0.4.0, tag v0.4, commit ab293247bf30229e29728566521098908f466bb1 (2025-07-24).
+  Later upstream versions (v1, v2, crate 0.6.0, July 2026) are a different
+  algorithm and would be a new hash, not an update.
+
+The C/C++ wrappers in csrc/ (a5hash_wrapper.c, meow_wrapper.cpp) were written
+for SpeeduPy's original ctypes-based loading and are kept so that the values
+match the original shared libraries byte for byte. They came from
+https://github.com/JoaoLopez/a5hash (commit 7ff7fa3) and
+https://github.com/JoaoLopez/meow_hash (commit beeb71f).
