@@ -1,0 +1,22 @@
+speedupy-native bundles three third-party hash implementations, vendored as git
+submodules under vendor/ at pinned commits. Their licenses apply to their code
+and are reproduced in the files named below; the glue code of this package is
+MIT (see LICENSE).
+
+a5hash (vendor/a5hash)
+  Copyright (c) Aleksey Vaneev
+  License: MIT, vendor/a5hash/LICENSE
+  Source: https://github.com/JoaoLopez/a5hash, commit 7ff7fa34c406279f3f3203fb01d39c8b8cf263b1
+  (fork of https://github.com/avaneev/a5hash adding a5hash_wrapper.c)
+
+MeowHash 0.5 (vendor/meow_hash)
+  (C) Copyright 2018 Molly Rocket, Inc.
+  License: zlib, vendor/meow_hash/LICENSE
+  Source: https://github.com/JoaoLopez/meow_hash, commit beeb71f01c2a3a85d5956589c0b14a825d28fdc9
+  (fork of https://github.com/cmuratori/meow_hash adding meow_wrapper.cpp)
+
+MuseAir (vendor/museair)
+  Copyright (c) K--Aethiax
+  License: MIT OR Apache-2.0, as declared in vendor/museair/Cargo.toml
+  Source: https://github.com/JoaoLopez/museair, branch oficial, commit 91e7304675d35139e4be9054e793a5504393b2bd
+  (fork of https://github.com/eternal-io/museair adding the museair_bfast_64 C export)

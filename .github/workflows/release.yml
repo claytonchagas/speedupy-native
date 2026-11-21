@@ -1,0 +1,196 @@
+# Started from `maturin generate-ci github` (maturin 1.16) and trimmed to the
+# platforms the package supports (docs/native-hashes.md in dew-uff/speedupy):
+# Linux x86_64 and aarch64 (manylinux), Windows x64, macOS x86_64 and arm64,
+# plus the sdist. One abi3 wheel per platform covers every Python from 3.10.
+#
+# Every wheel is installed and run against tests/test_vectors.py on its own
+# system before it can be released. A tag publishes to PyPI through Trusted
+# Publishing (no token stored): the PyPI project must list this repository,
+# this workflow file and the `pypi` environment as its publisher.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          manylinux: auto
+      - name: Upload wheel
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheels-linux-${{ matrix.target }}
+          path: dist
+      - uses: astral-sh/setup-uv@v7
+        if: ${{ matrix.target == 'x86_64' }}
+      - name: Test the wheel (x86_64)
+        if: ${{ matrix.target == 'x86_64' }}
+        shell: bash
+        run: |
+          set -e
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install speedupy-native --no-index --no-deps --find-links dist --reinstall
+          uv pip install pytest
+          pytest -q
+      - name: Test the wheel (aarch64, emulated)
+        if: ${{ matrix.target == 'aarch64' }}
+        uses: uraimo/run-on-arch-action@v3
+        with:
+          arch: aarch64
+          distro: ubuntu24.04
+          githubToken: ${{ github.token }}
+          install: |
+            apt-get update
+            apt-get install -y --no-install-recommends python3 python3-venv
+          run: |
+            set -e
+            python3 -m venv .venv
+            source .venv/bin/activate
+            pip install pytest
+            pip install speedupy-native --no-index --no-deps --find-links dist --force-reinstall
+            pytest -q
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+          architecture: x64
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x64
+          args: --release --out dist
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      - name: Upload wheel
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheels-windows-x64
+          path: dist
+      - uses: astral-sh/setup-uv@v7
+      - name: Test the wheel
+        shell: bash
+        run: |
+          set -e
+          uv venv .venv
+          source .venv/Scripts/activate
+          uv pip install speedupy-native --no-index --no-deps --find-links dist --reinstall
+          uv pip install pytest
+          pytest -q
+
+  macos:
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runner: macos-15-intel
+            target: x86_64
+          - runner: macos-latest
+            target: aarch64
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      - name: Upload wheel
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheels-macos-${{ matrix.platform.target }}
+          path: dist
+      - uses: astral-sh/setup-uv@v7
+      - name: Test the wheel
+        run: |
+          set -e
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install speedupy-native --no-index --no-deps --find-links dist --reinstall
+          uv pip install pytest
+          pytest -q
+
+  sdist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+      - name: Upload sdist
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheels-sdist
+          path: dist
+
+  # The one required check for the `main` ruleset, as in dew-uff/speedupy.
+  ci-ok:
+    runs-on: ubuntu-latest
+    needs: [linux, windows, macos, sdist]
+    if: ${{ always() }}
+    steps:
+      - name: Every build and test job succeeded
+        run: |
+          test "${{ needs.linux.result }}" = success
+          test "${{ needs.windows.result }}" = success
+          test "${{ needs.macos.result }}" = success
+          test "${{ needs.sdist.result }}" = success
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs: [linux, windows, macos, sdist]
+    environment: pypi
+    permissions:
+      id-token: write      # Trusted Publishing and artifact signing
+      contents: write      # release artifacts
+      attestations: write  # artifact attestation
+    steps:
+      - uses: actions/download-artifact@v7
+      - name: Generate artifact attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: 'wheels-*/*'
+      - uses: astral-sh/setup-uv@v7
+      - name: Publish to PyPI (Trusted Publishing)
+        run: uv publish --trusted-publishing always 'wheels-*/*'

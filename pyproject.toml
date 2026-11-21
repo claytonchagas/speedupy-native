@@ -1,0 +1,36 @@
+[build-system]
+requires = ["maturin>=1.8,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "speedupy-native"
+description = "Prebuilt native hash functions for SpeeduPy: a5hash, MeowHash 0.5 and MuseAir BFast"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.10"
+dynamic = ["version"]
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Repository = "https://github.com/dew-uff/speedupy-native"
+Documentation = "https://github.com/dew-uff/speedupy/blob/main/docs/native-hashes.md"
+
+[tool.maturin]
+python-source = "python"
+module-name = "speedupy_native._speedupy_native"
+features = ["pyo3/extension-module"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

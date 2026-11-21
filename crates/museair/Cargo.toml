@@ -1,0 +1,20 @@
+# Bridge manifest: builds the vendored MuseAir source (vendor/museair, a git
+# submodule pinned to the commit the measurements used) as a Rust library that
+# the extension can link. The fork's own Cargo.toml produces only a cdylib,
+# which Cargo cannot use as a dependency. No source file is copied or changed:
+# `path` below points into the submodule.
+[package]
+name = "museair"
+version = "0.4.0"
+edition = "2021"
+rust-version = "1.83"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+name = "museair"
+path = "../../vendor/museair/src/lib.rs"
+
+[features]
+default = ["std"]
+std = []
