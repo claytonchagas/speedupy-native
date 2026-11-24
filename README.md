@@ -1,3 +1,5 @@
+> **Superseded by [dew-uff/speedupy#115](https://github.com/dew-uff/speedupy/pull/115)**: the native hashes now ship inside the speedupy repository (`native/`). This package is no longer maintained; version 0.1.0 on PyPI stays for the record.
+
 # speedupy-native
 
 Prebuilt native hash functions for [SpeeduPy](https://github.com/dew-uff/speedupy):
